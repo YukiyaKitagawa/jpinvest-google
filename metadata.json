@@ -1,0 +1,6 @@
+{
+  "name": "AI株インパクトボード",
+  "description": "AI/半導体テーマの日本株を話題性(インパクトスコア)順・セクター別に一覧し、選んだ銘柄のイントラデイ値動きや関連ニュースを確認できるダッシュボード",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
