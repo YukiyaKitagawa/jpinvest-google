@@ -45,6 +45,15 @@ export const IntradayChart: React.FC<IntradayChartProps> = ({ tickerSymbol, pric
   const width = 1000;
   const height = 240;
 
+  // グラフ内の余白
+  const plotLeft = 72;
+  const plotRight = 16;
+  const plotTop = 12;
+  const plotBottom = 12;
+  
+  const plotWidth = width - plotLeft - plotRight;
+  const plotHeight = height - plotTop - plotBottom;
+  const plotBottomY = height - plotBottom;
   // Convert time string for label (e.g., '2026-07-17T09:30:00.000Z' -> '09:30')
   const formatTime = (isoString: string) => {
     try {
@@ -61,20 +70,32 @@ export const IntradayChart: React.FC<IntradayChartProps> = ({ tickerSymbol, pric
   
   // Build the path definition
   const points = prices.map((p, index) => {
-    const x = (index / (prices.length - 1)) * width;
-    // SVG is y-down, so invert height calculation
-    const y = height - ((p.price - yMin) / yRange) * height;
+    const ratio =
+      prices.length === 1
+        ? 0
+        : index / (prices.length - 1);
+  
+    const x = plotLeft + ratio * plotWidth;
+  
+    // SVGは下方向がプラスなので、価格が高いほど上に配置する
+    const y =
+      plotBottomY -
+      ((p.price - yMin) / yRange) * plotHeight;
+  
     return { x, y, data: p };
   });
-
+  
   // SVG path definition
   const pathData = points.reduce((acc, curr, index) => {
     return index === 0 ? `M ${curr.x} ${curr.y}` : `${acc} L ${curr.x} ${curr.y}`;
   }, '');
 
   // Fill path definition (area chart)
-  const fillPathData = `${pathData} L ${width} ${height} L 0 ${height} Z`;
-
+  const fillPathData =
+    `${pathData} ` +
+    `L ${plotLeft + plotWidth} ${plotBottomY} ` +
+    `L ${plotLeft} ${plotBottomY} Z`;
+  
   // Handle cursor tracking across the SVG area
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
     if (!svgRef.current) return;
@@ -110,7 +131,20 @@ export const IntradayChart: React.FC<IntradayChartProps> = ({ tickerSymbol, pric
 
   // Filter X-axis labels to avoid crowding (show 5 strategic times)
   const xLabelsIndices = [0, Math.floor(prices.length * 0.25), Math.floor(prices.length * 0.5), Math.floor(prices.length * 0.75), prices.length - 1];
-
+  
+  // Y軸の価格目盛り
+  const yTickCount = 5;
+  const yTicks = Array.from({ length: yTickCount }, (_, index) => {
+    const ratio = index / (yTickCount - 1);
+    const price = yMax - ratio * yRange;
+    const y = plotTop + ratio * plotHeight;
+  
+    return {
+      price: Math.round(price),
+      y,
+    };
+  });
+  
   return (
     <div id="intraday-chart-wrapper" className="bg-white p-md border border-outline-variant rounded-md shadow-sm" ref={containerRef}>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-xs mb-sm">
@@ -147,6 +181,7 @@ export const IntradayChart: React.FC<IntradayChartProps> = ({ tickerSymbol, pric
         <svg
           ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
+          preserveAspectRatio="none"
           className="w-full h-44 overflow-visible cursor-crosshair"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
@@ -160,10 +195,18 @@ export const IntradayChart: React.FC<IntradayChartProps> = ({ tickerSymbol, pric
           </defs>
 
           {/* Grid lines (horizontal) */}
-          <line x1="0" y1={height * 0.25} x2={width} y2={height * 0.25} stroke="#f1f5f9" strokeWidth="1" />
-          <line x1="0" y1={height * 0.5} x2={width} y2={height * 0.5} stroke="#f1f5f9" strokeWidth="1" />
-          <line x1="0" y1={height * 0.75} x2={width} y2={height * 0.75} stroke="#f1f5f9" strokeWidth="1" />
-
+          {yTicks.map((tick, index) => (
+            <line
+              key={`grid-${index}`}
+              x1={plotLeft}
+              y1={tick.y}
+              x2={plotLeft + plotWidth}
+              y2={tick.y}
+              stroke="#e2e8f0"
+              strokeWidth="1"
+            />
+          ))}
+          
           {/* Area Fill */}
           <path d={fillPathData} fill={`url(#grad-${tickerSymbol})`} />
 
@@ -206,6 +249,21 @@ export const IntradayChart: React.FC<IntradayChartProps> = ({ tickerSymbol, pric
           })}
         </svg>
 
+        {/* Y Axis Labels */}
+        <div className="pointer-events-none absolute inset-0">
+          {yTicks.map((tick, index) => (
+            <span
+              key={`y-label-${index}`}
+              className="absolute left-1 -translate-y-1/2 bg-white/80 pr-1 font-mono text-[10px] font-medium text-slate-500"
+              style={{
+                top: `${(tick.y / height) * 100}%`,
+              }}
+            >
+              ¥{tick.price.toLocaleString()}
+            </span>
+          ))}
+        </div>
+        
         {/* Floating Tooltip during tracking */}
         {hoveredPoint && (
           <div
@@ -223,7 +281,13 @@ export const IntradayChart: React.FC<IntradayChartProps> = ({ tickerSymbol, pric
       </div>
 
       {/* X Axis Labels */}
-      <div className="flex justify-between items-center px-sm mt-xs border-t border-slate-100 pt-sm">
+      <div
+        className="flex items-center justify-between mt-xs border-t border-slate-100 pt-sm"
+        style={{
+          paddingLeft: `${(plotLeft / width) * 100}%`,
+          paddingRight: `${(plotRight / width) * 100}%`,
+        }}
+      >
         {xLabelsIndices.map((idx) => {
           if (idx >= prices.length) return null;
           const p = prices[idx];
