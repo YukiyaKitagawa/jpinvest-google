@@ -355,9 +355,6 @@ export default function App() {
                         {sectorItems.length}銘柄
                       </span>
                     </div>
-                    <span className="font-mono text-xs text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full font-bold">
-                      {sectorItems.length}
-                    </span>
                   </div>
 
                   {/* Stock Cards Grid */}
