@@ -77,11 +77,72 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
     : `${item.price_change_pct.toFixed(2)}%`;
 
   const formatMarketCap = (cap?: number) => {
-    if (!cap) return '---';
+    if (cap === undefined || !Number.isFinite(cap)) return '---';
     if (cap >= 1000000000000) {
       return `${(cap / 1000000000000).toFixed(2)} 兆円`;
     }
     return `${(cap / 100000000).toFixed(0)} 億円`;
+  };
+
+  const formatFinancialAmount = (value?: number) => {
+    if (value === undefined || !Number.isFinite(value)) {
+      return '---';
+    }
+
+    const absoluteValue = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+
+    if (absoluteValue >= 1000000000000) {
+      return `${sign}${(absoluteValue / 1000000000000).toFixed(2)} 兆円`;
+    }
+
+    if (absoluteValue >= 100000000) {
+      return `${sign}${(absoluteValue / 100000000).toFixed(1)} 億円`;
+    }
+
+    if (absoluteValue >= 10000) {
+      return `${sign}${(absoluteValue / 10000).toFixed(1)} 万円`;
+    }
+
+    return `${value.toLocaleString('ja-JP')} 円`;
+  };
+
+  const formatPerShare = (value?: number) => {
+    if (value === undefined || !Number.isFinite(value)) {
+      return '---';
+    }
+
+    return `${value.toLocaleString('ja-JP', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    })} 円`;
+  };
+
+  const formatRatio = (
+    value: number | undefined,
+    suffix: string,
+    digits: number
+  ) => {
+    if (value === undefined || !Number.isFinite(value)) {
+      return '---';
+    }
+
+    return `${value.toFixed(digits)}${suffix}`;
+  };
+
+  const formatFiscalDate = (value?: string) => {
+    if (!value) return '---';
+
+    const date = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(date);
   };
 
   return (
@@ -232,9 +293,29 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
               
               {/* Financial Stats Bento Box */}
               <div className="bg-white p-md border border-outline-variant rounded-md shadow-sm">
-                <h3 className="font-label-caps text-label-caps text-[#031636] uppercase tracking-wider mb-sm">
-                  主要財務データ・ファンダメンタルズ
-                </h3>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-sm">
+                  <div>
+                    <h3 className="font-label-caps text-label-caps text-[#031636] uppercase tracking-wider">
+                      主要財務データ・ファンダメンタルズ
+                    </h3>
+                    <p className="mt-1 text-[10px] text-on-surface-variant">
+                      株価指標は最新株価とEDINET決算実績から自動計算します。
+                    </p>
+                  </div>
+
+                  <span
+                    className={`w-fit rounded-full px-2 py-1 text-[10px] font-bold ${
+                      item.financial_snapshot_available
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                    }`}
+                  >
+                    {item.financial_snapshot_available
+                      ? `EDINET実績 ${formatFiscalDate(item.fiscal_year_end)}`
+                      : 'EDINET実績 未取得'}
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-sm">
                   <div className="p-sm bg-surface-container-low border border-outline-variant rounded-sm text-center">
                     <p className="font-label-caps text-[10px] text-on-surface-variant">時価総額</p>
@@ -243,30 +324,94 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
                     </p>
                   </div>
                   <div className="p-sm bg-surface-container-low border border-outline-variant rounded-sm text-center">
-                    <p className="font-label-caps text-[10px] text-on-surface-variant">PER (実績)</p>
+                    <p className="font-label-caps text-[10px] text-on-surface-variant">PER（実績）</p>
                     <p className="font-mono text-xs font-bold text-primary mt-1">
-                      {item.per_ratio ? `${item.per_ratio.toFixed(1)}x` : '---'}
+                      {formatRatio(item.per_ratio, '倍', 1)}
                     </p>
                   </div>
                   <div className="p-sm bg-surface-container-low border border-outline-variant rounded-sm text-center">
-                    <p className="font-label-caps text-[10px] text-on-surface-variant">PBR (実績)</p>
+                    <p className="font-label-caps text-[10px] text-on-surface-variant">PBR（実績）</p>
                     <p className="font-mono text-xs font-bold text-primary mt-1">
-                      {item.pbr_ratio ? `${item.pbr_ratio.toFixed(1)}x` : '---'}
+                      {formatRatio(item.pbr_ratio, '倍', 1)}
                     </p>
                   </div>
                   <div className="p-sm bg-surface-container-low border border-outline-variant rounded-sm text-center">
-                    <p className="font-label-caps text-[10px] text-on-surface-variant">ROE (自己資本)</p>
+                    <p className="font-label-caps text-[10px] text-on-surface-variant">ROE（期末自己資本）</p>
                     <p className="font-mono text-xs font-bold text-primary mt-1">
-                      {item.roe ? `${item.roe.toFixed(1)}%` : '---'}
+                      {formatRatio(item.roe, '%', 1)}
                     </p>
                   </div>
                   <div className="p-sm bg-surface-container-low border border-outline-variant rounded-sm text-center col-span-2 sm:col-span-1">
                     <p className="font-label-caps text-[10px] text-on-surface-variant">配当利回り</p>
                     <p className="font-mono text-xs font-bold text-primary mt-1">
-                      {item.dividend_yield ? `${item.dividend_yield.toFixed(2)}%` : '0.00%'}
+                      {formatRatio(item.dividend_yield, '%', 2)}
                     </p>
                   </div>
                 </div>
+
+                {item.financial_snapshot_available ? (
+                  <div className="mt-md border-t border-outline-variant pt-md">
+                    <div className="mb-sm flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-[10px] text-on-surface-variant">
+                        <span className="font-bold text-primary">
+                          {item.financial_document_type_name || '有価証券報告書'}
+                        </span>
+                        <span className="mx-1">・</span>
+                        <span>{item.accounting_standard || '会計基準不明'}</span>
+                        {item.financial_document_id && (
+                          <>
+                            <span className="mx-1">・</span>
+                            <span className="font-mono">{item.financial_document_id}</span>
+                          </>
+                        )}
+                      </div>
+
+                      {item.financial_source_url && (
+                        <a
+                          href={item.financial_source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-primary hover:underline"
+                        >
+                          EDINET原本
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-sm">
+                      {[
+                        ['売上高・売上収益', formatFinancialAmount(item.revenue)],
+                        ['営業利益', formatFinancialAmount(item.operating_profit)],
+                        ['当期純利益', formatFinancialAmount(item.net_income)],
+                        ['総資産', formatFinancialAmount(item.total_assets)],
+                        ['自己資本・純資産', formatFinancialAmount(item.equity)],
+                        ['営業キャッシュフロー', formatFinancialAmount(item.operating_cash_flow)],
+                        ['EPS', formatPerShare(item.eps_actual)],
+                        ['BPS', formatPerShare(item.bps)],
+                        ['年間配当', formatPerShare(item.annual_dividend_actual)]
+                      ].map(([label, value]) => (
+                        <div
+                          key={label}
+                          className="rounded-sm border border-outline-variant bg-white p-sm"
+                        >
+                          <p className="text-[10px] text-on-surface-variant">{label}</p>
+                          <p className="mt-1 font-mono text-xs font-bold text-primary">
+                            {value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="mt-sm text-[10px] leading-relaxed text-on-surface-variant">
+                      ROEは当期純利益÷期末自己資本で算出した簡易値です。厳密な平均自己資本ベースとは異なる場合があります。
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-md rounded-sm border border-dashed border-outline-variant bg-slate-50 p-sm text-xs text-on-surface-variant">
+                    この銘柄のEDINET決算実績はまだ保存されていません。提出書類の自動収集後に表示されます。
+                  </div>
+                )}
               </div>
 
               {/* AI Impact breakdown & analysis paragraph */}
