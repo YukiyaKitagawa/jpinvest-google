@@ -48,13 +48,17 @@ export const IntradayChart: React.FC<IntradayChartProps> = ({ tickerSymbol, pric
   // Convert time string for label (e.g., '2026-07-17T09:30:00.000Z' -> '09:30')
   const formatTime = (isoString: string) => {
     try {
-      const match = isoString.match(/T(\d{2}:\d{2})/);
-      return match ? match[1] : isoString;
-    } catch (e) {
+      return new Intl.DateTimeFormat('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).format(new Date(isoString));
+    } catch {
       return isoString;
     }
   };
-
+  
   // Build the path definition
   const points = prices.map((p, index) => {
     const x = (index / (prices.length - 1)) * width;
