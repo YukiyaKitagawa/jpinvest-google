@@ -136,56 +136,75 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-end gap-md sm:gap-xl mt-sm">
-            <div className="flex flex-col">
-              <span className="font-label-caps text-[10px] text-on-surface-variant mb-1">現在値</span>
-              <span className="font-mono text-2xl font-bold text-primary">{formattedPrice}</span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+            {/* 現在値 */}
+            <div className="flex min-h-[88px] flex-col justify-between rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <span className="text-sm font-medium text-slate-600">
+                現在値
+              </span>
+          
+              <span className="font-mono text-3xl font-bold leading-none text-slate-900">
+                {formattedPrice}
+              </span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-label-caps text-[10px] text-on-surface-variant mb-1">前日比</span>
+          
+            {/* 前日比 */}
+            <div className="flex min-h-[88px] flex-col justify-between rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <span className="text-sm font-medium text-slate-600">
+                前日比
+              </span>
+          
               <span
-                className={`font-mono text-sm font-bold flex items-center ${
-                  isPositive ? 'text-[#0F9D58]' : isNegative ? 'text-[#D93025]' : 'text-on-surface-variant'
+                className={`flex items-center font-mono text-xl font-bold leading-none ${
+                  isPositive
+                    ? 'text-[#0F9D58]'
+                    : isNegative
+                      ? 'text-[#D93025]'
+                      : 'text-slate-600'
                 }`}
               >
-                {isPositive && <TrendingUp className="w-4 h-4 mr-0.5" />}
-                {isNegative && <TrendingDown className="w-4 h-4 mr-0.5" />}
-                {!isPositive && !isNegative && <Minus className="w-4 h-4 mr-0.5" />}
+                {isPositive && <TrendingUp className="mr-1 h-5 w-5" />}
+                {isNegative && <TrendingDown className="mr-1 h-5 w-5" />}
+                {!isPositive && !isNegative && <Minus className="mr-1 h-5 w-5" />}
                 {formattedChange}
               </span>
             </div>
-            
-            <div className="h-8 w-px bg-outline-variant self-center hidden sm:block"></div>
-
-            <div className="flex gap-lg">
-              <div className="flex flex-col">
-                <span className="font-label-caps text-[10px] text-on-surface-variant mb-1">
-                  AIインパクト度
+          
+            {/* AIインパクト度 */}
+            <div className="flex min-h-[88px] flex-col justify-between rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <span className="text-sm font-medium text-slate-600">
+                AIインパクト度
+              </span>
+          
+              <div className="flex items-baseline gap-1 leading-none">
+                <span className="font-mono text-3xl font-bold text-slate-900">
+                  {item.impact_score}
                 </span>
-              
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-slate-900">
-                    {item.impact_score}
-                  </span>
-              
-                  <span className="text-sm font-bold text-slate-500">
-                    / 10
-                  </span>
-                </div>
+          
+                <span className="font-mono text-lg font-bold text-slate-500">
+                  / 10
+                </span>
               </div>
-              <div className="flex flex-col">
-                <span className="font-label-caps text-[10px] text-on-surface-variant mb-1">マーケットセンチメント</span>
-                <div className="flex items-center gap-1">
-                  {item.market_sentiment === 'positive' && (
-                    <span className="text-xs text-[#0F9D58] font-bold">🟢 強気 (Bullish)</span>
-                  )}
-                  {item.market_sentiment === 'negative' && (
-                    <span className="text-xs text-[#D93025] font-bold">🔴 弱気 (Bearish)</span>
-                  )}
-                  {item.market_sentiment === 'neutral' && (
-                    <span className="text-xs text-on-surface-variant font-bold">🟡 中立 (Neutral)</span>
-                  )}
-                </div>
+            </div>
+          
+            {/* マーケットセンチメント */}
+            <div className="flex min-h-[88px] flex-col justify-between rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <span className="text-sm font-medium text-slate-600">
+                マーケットセンチメント
+              </span>
+          
+              <div className="flex items-center text-lg font-bold leading-none">
+                {item.market_sentiment === 'positive' && (
+                  <span className="text-[#0F9D58]">● 強気 (Bullish)</span>
+                )}
+          
+                {item.market_sentiment === 'negative' && (
+                  <span className="text-[#D93025]">● 弱気 (Bearish)</span>
+                )}
+          
+                {item.market_sentiment === 'neutral' && (
+                  <span className="text-slate-600">● 中立 (Neutral)</span>
+                )}
               </div>
             </div>
           </div>
