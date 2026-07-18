@@ -346,9 +346,15 @@ export default function App() {
                   {/* Sector Header with badge */}
                   <div className="flex items-center gap-sm border-b border-outline-variant pb-xs">
                     <span className="w-1.5 h-4 bg-primary rounded-sm"></span>
-                    <h3 className="text-sm font-bold text-[#031636] font-sans tracking-tight">
-                      {sectorName}
-                    </h3>
+                    <div className="flex items-center gap-2 px-2 py-2 bg-slate-100 border-y border-slate-300">
+                      <h3 className="text-lg font-bold text-slate-900 leading-none">
+                        {sectorName}
+                      </h3>
+                    
+                      <span className="text-sm font-bold text-slate-600">
+                        {sectorItems.length}銘柄
+                      </span>
+                    </div>
                     <span className="font-mono text-xs text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full font-bold">
                       {sectorItems.length}
                     </span>
