@@ -159,10 +159,19 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
 
             <div className="flex gap-lg">
               <div className="flex flex-col">
-                <span className="font-label-caps text-[10px] text-on-surface-variant mb-1">AIインパクト度</span>
-                <span className="px-2 py-0.5 bg-primary-container text-white text-xs font-mono font-bold rounded-sm">
-                  Score {item.impact_score} / 10
+                <span className="font-label-caps text-[10px] text-on-surface-variant mb-1">
+                  AIインパクト度
                 </span>
+              
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold text-slate-900">
+                    {item.impact_score}
+                  </span>
+              
+                  <span className="text-sm font-bold text-slate-500">
+                    / 10
+                  </span>
+                </div>
               </div>
               <div className="flex flex-col">
                 <span className="font-label-caps text-[10px] text-on-surface-variant mb-1">マーケットセンチメント</span>
